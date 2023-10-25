@@ -5,6 +5,9 @@
     <title>首页</title>
 </head>
 <body>
+<a th:href="@{/admin/api}">管理员</a>
+<a th:href="@{/user/api}">用户</a>
+<a th:href="@{/app/api}">app</a>
 <form th:action="@{/logout}" method="post">
     退出是一个POST请求：<input type="submit" value="退出">
 </form>
