@@ -2,6 +2,7 @@ package fun.mjauto.auth.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,13 +26,22 @@ public class SecurityConfig {
         );
 
         // 配置基于表单的登录认证
-        http.formLogin(formLogin -> formLogin
+        http.formLogin(formLogin ->
+                formLogin
                 .loginPage("/auth/login").permitAll() // 自定义登录页面
                 .usernameParameter("username") // 用户名字段的参数名
                 .passwordParameter("password") // 密码字段的参数名
                 .loginProcessingUrl("/login") // 登录表单提交处理的URL
                 .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
         );
+
+        // 配置退出
+        http.logout(logout->
+                logout
+                        .invalidateHttpSession(true)); // 让Session失效
+
+        // 关闭跨域漏洞防御
+        http.csrf(Customizer.withDefaults());
 
         return http.build();
     }
