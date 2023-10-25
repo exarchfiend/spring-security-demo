@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    @GetMapping("/index")
+    @GetMapping("/code")
     public String index(){
-        return "主页";
+        return "获取验证码";
     }
 }
