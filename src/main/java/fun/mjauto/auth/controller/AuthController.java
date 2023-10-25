@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     @GetMapping("/code")
-    public String index(){
+    public String getCode(){
         return "获取验证码";
     }
 }
