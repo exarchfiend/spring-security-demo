@@ -4,3 +4,7 @@ spring:
     url: jdbc:mysql://localhost:3306/security
     username: root
     password: root
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

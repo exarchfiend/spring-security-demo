@@ -1,5 +1,7 @@
 package fun.mjauto.auth.config;
 
+import fun.mjauto.auth.mapper.AuthMapper;
+import fun.mjauto.auth.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,31 +75,35 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Autowired
-    DataSource dataSource;
+//    private final DataSource dataSource;
+//
+//    @Autowired
+//    public SecurityConfig(DataSource dataSource) {
+//        this.dataSource = dataSource;
+//    }
 
-    @Bean
-    public UserDetailsService userDetailsService(){
-        // 引入dataSource
-        JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager();
-        userDetailsManager.setDataSource(dataSource);
-
-        // 设置管理员和用户角色
-//        UserDetails user1 = User.withUsername("admin").password("123456").roles("admin","user").build();
-//        UserDetails user2 = User.withUsername("user").password("123456").roles("user").build();
-
-        // 设置管理员和用户权限
-        UserDetails user1 = User.withUsername("admin").password("123456").authorities("admin:api","user:api").build();
-        UserDetails user2 = User.withUsername("user").password("123456").authorities("user:api").build();
-
-        // 在表里面创建用户信息
-        if (!userDetailsManager.userExists("admin") && !userDetailsManager.userExists("user")){
-            userDetailsManager.createUser(user1);
-            userDetailsManager.createUser(user2);
-        }
-
-        return new InMemoryUserDetailsManager(user1,user2);
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService(){
+//        // 引入dataSource
+//        JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager();
+//        userDetailsManager.setDataSource(dataSource);
+//
+//        // 设置管理员和用户角色
+////        UserDetails user1 = User.withUsername("admin").password("123456").roles("admin","user").build();
+////        UserDetails user2 = User.withUsername("user").password("123456").roles("user").build();
+//
+//        // 设置管理员和用户权限
+//        UserDetails user1 = User.withUsername("admin").password("123456").authorities("admin:api","user:api").build();
+//        UserDetails user2 = User.withUsername("user").password("123456").authorities("user:api").build();
+//
+//        // 在表里面创建用户信息
+//        if (!userDetailsManager.userExists("admin") && !userDetailsManager.userExists("user")){
+//            userDetailsManager.createUser(user1);
+//            userDetailsManager.createUser(user2);
+//        }
+//
+//        return new InMemoryUserDetailsManager(user1,user2);
+//    }
 
 //    @Bean
 //    public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
