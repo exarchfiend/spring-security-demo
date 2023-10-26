@@ -6,8 +6,17 @@
 </head>
 <body>
 <a th:href="@{/admin/api}">管理员</a>
+<br>
 <a th:href="@{/user/api}">用户</a>
+<br>
 <a th:href="@{/app/api}">app</a>
+<br>
+<a th:href="@{/admin/a/a}">?</a>
+<br>
+<a th:href="@{/admin/aa/aa}">*</a>
+<br>
+<a th:href="@{/admin/aaa/a/b/c}">***</a>
+<br>
 <form th:action="@{/logout}" method="post">
     退出是一个POST请求：<input type="submit" value="退出">
 </form>

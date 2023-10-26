@@ -1,5 +1,6 @@
 package fun.mjauto.auth.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -7,10 +8,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.sql.DataSource;
 
 /**
  * @author MJ
@@ -25,8 +30,17 @@ public class SecurityConfig {
         // 配置请求权限：permitAll()拥有所有权限
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
-                        .requestMatchers("/admin/api").hasRole("admin") // 角色admin可以访问
-                        .requestMatchers("/user/api").hasAnyRole("admin","user") // 角色admin和user可以访问
+                        // 角色相关
+                        //.requestMatchers("/admin/api").hasRole("admin") // 角色admin可以访问
+                        //.requestMatchers("/user/api").hasAnyRole("admin","user") // 角色admin和user可以访问
+                        // 权限相关
+                        .requestMatchers("/admin/api").hasAnyAuthority("admin:api") // 权限admin可以访问
+                        .requestMatchers("/user/api").hasAnyAuthority("admin:api","user:api") // 权限admin和user可以访问
+                        // 匹配相关相关
+                        .requestMatchers("/admin/a/?").hasAnyAuthority("admin:api") // 任意单个字符
+                        .requestMatchers("/admin/aa/*").hasAnyAuthority("admin:api") // 0-任意数量的字符
+                        .requestMatchers("/admin/aaa/**").hasAnyAuthority("admin:api") // 0-任意数量的目录
+
                         .requestMatchers("/auth/code").permitAll() // 获取验证码的URL不需要认证
                         .requestMatchers("/login").permitAll() // 登录表单提交处理的URL不需要认证
                         .anyRequest().authenticated() // 其它所有请求都需要认证，不可以匿名访问
@@ -59,14 +73,45 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Autowired
+    DataSource dataSource;
+
     @Bean
-    public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
-        // 设置一个管理员角色
-        UserDetails user1 = User.withUsername("admin").password("123456").roles("admin","user").build();
-        // 设置一个用户角色
-        UserDetails user2 = User.withUsername("user").password("123456").roles("user").build();
+    public UserDetailsService userDetailsService(){
+        // 引入dataSource
+        JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager();
+        userDetailsManager.setDataSource(dataSource);
+
+        // 设置管理员和用户角色
+//        UserDetails user1 = User.withUsername("admin").password("123456").roles("admin","user").build();
+//        UserDetails user2 = User.withUsername("user").password("123456").roles("user").build();
+
+        // 设置管理员和用户权限
+        UserDetails user1 = User.withUsername("admin").password("123456").authorities("admin:api","user:api").build();
+        UserDetails user2 = User.withUsername("user").password("123456").authorities("user:api").build();
+
+        // 在表里面创建用户信息
+        if (!userDetailsManager.userExists("admin") && !userDetailsManager.userExists("user")){
+            userDetailsManager.createUser(user1);
+            userDetailsManager.createUser(user2);
+        }
+
         return new InMemoryUserDetailsManager(user1,user2);
     }
+
+//    @Bean
+//    public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
+//        // 设置管理员和用户角色
+//        // UserDetails user1 = User.withUsername("admin").password("123456").roles("admin","user").build();
+//        // UserDetails user2 = User.withUsername("user").password("123456").roles("user").build();
+//
+//        // 设置管理员和用户权限
+//        UserDetails user1 = User.withUsername("admin").password("123456").authorities("admin:api","user:api").build();
+//        UserDetails user2 = User.withUsername("user").password("123456").authorities("user:api").build();
+//
+//        // 总结 角色和权限其实是一样的 角色会被加上前缀：ROLE_
+//        return new InMemoryUserDetailsManager(user1,user2);
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
