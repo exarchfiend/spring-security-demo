@@ -38,14 +38,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 制造异常查看调用堆栈
+//        int i = 10 / 0;
+
         // 根据username查询用户
         QueryWrapper<User> wrapperUser = new QueryWrapper<>();
         wrapperUser.eq("username", username); // 在查询条件中设置字段名和值
         User user = userMapper.selectOne(wrapperUser); // 执行查询并返回结果
 
         // 判断查询结果是否为空
-        if (user == null){
-            throw new  UsernameNotFoundException("未查询到此用户");
+        if (user == null) {
+            throw new UsernameNotFoundException("未查询到此用户");
         }
 
         // 更具user_id查询用户权限
