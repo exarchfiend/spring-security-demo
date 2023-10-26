@@ -2,6 +2,7 @@ package fun.mjauto.auth.config;
 
 import fun.mjauto.auth.exception.LoginFailureHandler;
 import fun.mjauto.auth.exception.LoginSuccessHandler;
+import fun.mjauto.auth.filter.CodeFilter;
 import fun.mjauto.auth.filter.LoginFilter;
 import fun.mjauto.auth.mapper.AuthMapper;
 import fun.mjauto.auth.mapper.UserMapper;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -87,12 +89,14 @@ public class SecurityConfig {
                         .usernameParameter("username") // 用户名字段的参数名
                         .passwordParameter("password") // 密码字段的参数名
                         .loginProcessingUrl("/login") // 登录表单提交处理的URL
-                        .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
+//                        .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
 //                        .failureHandler(new LoginFailureHandler())
         );
 
         // 配置自定义登录过滤器
-//        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
+        // 配置验证码拦截器
+        http.addFilterBefore(new CodeFilter(), UsernamePasswordAuthenticationFilter.class);
 
         // 配置退出
         http.logout(logout->
@@ -150,18 +154,18 @@ public class SecurityConfig {
 //        return new InMemoryUserDetailsManager(user1,user2);
 //    }
 
-//    @Autowired
-//    AuthenticationConfiguration authenticationConfiguration;
-//
-//    @Bean
-//    public LoginFilter loginFilter() throws Exception {
-//        LoginFilter loginFilter = new LoginFilter();
-//        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
-//        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
-//
-//        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
-//        return loginFilter;
-//    }
+    @Autowired
+    AuthenticationConfiguration authenticationConfiguration;
+
+    @Bean
+    public LoginFilter loginFilter() throws Exception {
+        LoginFilter loginFilter = new LoginFilter();
+        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
+        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
+
+        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+        return loginFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){

@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,7 +44,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @SneakyThrows
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        System.out.println("登陆过滤器...");
+        logger.info("登陆过滤器...");
         if (!request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         }
@@ -51,7 +52,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 原验证方法
         String username = this.obtainUsername(request);
         username = username != null ? username.trim() : "";
-        String password = this.obtainPassword(request);
+        String password = super.obtainPassword(request);
         password = password != null ? password : "";
         UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
         this.setDetails(request, authRequest);
