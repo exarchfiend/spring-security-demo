@@ -1,6 +1,8 @@
 package fun.mjauto.auth.config;
 
 import fun.mjauto.auth.exception.LoginFailureHandler;
+import fun.mjauto.auth.exception.LoginSuccessHandler;
+import fun.mjauto.auth.filter.LoginFilter;
 import fun.mjauto.auth.mapper.AuthMapper;
 import fun.mjauto.auth.mapper.UserMapper;
 import jakarta.servlet.ServletException;
@@ -9,7 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.AuthenticationException;
@@ -21,7 +26,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -56,9 +64,20 @@ public class SecurityConfig {
         );
 
         // 异常处理配置一个未授权页面
+//        http.exceptionHandling(exceptionHandling->
+//                exceptionHandling
+//                        .accessDeniedPage("/noAuth")
+//        );
+        // 异常处理配置一个未授权处理器
         http.exceptionHandling(exceptionHandling->
                 exceptionHandling
-                        .accessDeniedPage("/noAuth")
+                        .accessDeniedHandler(new AccessDeniedHandler() {
+                            @Override
+                            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+                                System.out.println("未授权页面");
+                                accessDeniedException.printStackTrace();
+                            }
+                        })
         );
 
         // 配置基于表单的登录认证
@@ -69,13 +88,17 @@ public class SecurityConfig {
                         .passwordParameter("password") // 密码字段的参数名
                         .loginProcessingUrl("/login") // 登录表单提交处理的URL
                         .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
-                        .failureHandler(new LoginFailureHandler())
+//                        .failureHandler(new LoginFailureHandler())
         );
+
+        // 配置自定义登录过滤器
+//        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
 
         // 配置退出
         http.logout(logout->
                 logout
-                        .invalidateHttpSession(true)); // 让Session失效
+                        .invalidateHttpSession(true) // 让Session失效
+        );
 
         // 关闭跨域漏洞防御
         http.csrf(Customizer.withDefaults());
@@ -125,6 +148,19 @@ public class SecurityConfig {
 //
 //        // 总结 角色和权限其实是一样的 角色会被加上前缀：ROLE_
 //        return new InMemoryUserDetailsManager(user1,user2);
+//    }
+
+//    @Autowired
+//    AuthenticationConfiguration authenticationConfiguration;
+//
+//    @Bean
+//    public LoginFilter loginFilter() throws Exception {
+//        LoginFilter loginFilter = new LoginFilter();
+//        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
+//        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
+//
+//        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+//        return loginFilter;
 //    }
 
     @Bean
