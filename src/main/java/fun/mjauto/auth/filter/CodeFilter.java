@@ -27,6 +27,7 @@ public class CodeFilter extends OncePerRequestFilter {
         } else {
             // 验证失败，可以自定义处理逻辑，比如返回错误信息或重定向到登录页
             logger.info("验证失败");
+            // 建议抛出异常 统一错误处理
             response.sendRedirect("/auth/login");
         }
     }
@@ -39,6 +40,7 @@ public class CodeFilter extends OncePerRequestFilter {
             String code1 = request.getParameter("captcha");
             String code2 = request.getSession().getAttribute("captcha").toString();
             logger.info("输入：" + code1 + " 正确：" + code2);
+            request.getSession().removeAttribute("captcha");
             return code1.equals(code2);
         }
         return true;

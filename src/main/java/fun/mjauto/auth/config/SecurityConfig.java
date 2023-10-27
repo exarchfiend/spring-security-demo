@@ -3,6 +3,7 @@ package fun.mjauto.auth.config;
 import fun.mjauto.auth.exception.LoginFailureHandler;
 import fun.mjauto.auth.filter.CodeFilter;
 import fun.mjauto.auth.filter.LoginFilter;
+import fun.mjauto.auth.service.impl.TokenServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    TokenServiceImpl tokenServiceImpl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         // 配置请求安全权限：permitAll()拥有所有权限
@@ -87,6 +92,14 @@ public class SecurityConfig {
 
         // 关闭跨域漏洞防御
         http.csrf(Customizer.withDefaults());
+
+        // 配置记住我
+        http.rememberMe(rememberMe -> rememberMe
+                .rememberMeCookieName("rememberMe") // 默认是remember-me
+                .rememberMeParameter("rememberMe") // 默认是remember-me
+                .key("myKey") // 加密密钥
+                .tokenRepository(tokenServiceImpl) // 接口PersistentTokenRepository的默认的现类JdbcTokenRepositoryImpl
+        );
 
         return http.build();
     }
