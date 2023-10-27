@@ -4,6 +4,9 @@ import fun.mjauto.auth.exception.LoginFailureHandler;
 import fun.mjauto.auth.filter.CodeFilter;
 import fun.mjauto.auth.filter.LoginFilter;
 import fun.mjauto.auth.service.impl.TokenServiceImpl;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +18,9 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.InvalidSessionStrategy;
+
+import java.io.IOException;
 
 /**
  * @author MJ
@@ -88,6 +94,8 @@ public class SecurityConfig {
         http.logout(logout->
                 logout
                         .invalidateHttpSession(true) // 让Session失效
+                        .deleteCookies("rememberMe") // 清除cookies
+                        .logoutSuccessUrl("/auth/login") // 成功跳转url(可以配置自定义退出提示界面)
         );
 
         // 关闭跨域漏洞防御
@@ -100,6 +108,18 @@ public class SecurityConfig {
                 .key("myKey") // 加密密钥
                 .tokenRepository(tokenServiceImpl) // 接口PersistentTokenRepository的默认的现类JdbcTokenRepositoryImpl
         );
+
+        // 会话失效策略
+//        http.sessionManagement(sessionManagement->
+//                sessionManagement
+//                        .invalidSessionStrategy(new InvalidSessionStrategy() {
+//                            @Override
+//                            public void onInvalidSessionDetected(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+//                                response.setContentType("text/html;charset-UTF-8");
+//                                response.getWriter().write("会话失效");
+//                            }
+//                        }) // 会话失效策略
+//        );
 
         return http.build();
     }
