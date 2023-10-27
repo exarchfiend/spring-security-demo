@@ -61,26 +61,27 @@ public class SecurityConfig {
                         .requestMatchers("/admin/aaa/**").hasAnyAuthority("admin:api") // 0-任意数量的目录
 
                         .requestMatchers("/auth/code").permitAll() // 获取验证码的URL不需要认证
+                        .requestMatchers("/favicon.ico").permitAll() // 浏览器默认发送的请求
                         .requestMatchers("/login").permitAll() // 登录表单提交处理的URL不需要认证
                         .anyRequest().authenticated() // 其它所有请求都需要认证，不可以匿名访问
         );
 
         // 异常处理配置一个未授权页面
-//        http.exceptionHandling(exceptionHandling->
-//                exceptionHandling
-//                        .accessDeniedPage("/noAuth")
-//        );
-        // 异常处理配置一个未授权处理器
         http.exceptionHandling(exceptionHandling->
                 exceptionHandling
-                        .accessDeniedHandler(new AccessDeniedHandler() {
-                            @Override
-                            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-                                System.out.println("未授权页面");
-                                accessDeniedException.printStackTrace();
-                            }
-                        })
+                        .accessDeniedPage("/noAuth")
         );
+        // 异常处理配置一个未授权处理器
+//        http.exceptionHandling(exceptionHandling->
+//                exceptionHandling
+//                        .accessDeniedHandler(new AccessDeniedHandler() {
+//                            @Override
+//                            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+//                                System.out.println("未授权页面");
+//                                accessDeniedException.printStackTrace();
+//                            }
+//                        })
+//        );
 
         // 配置基于表单的登录认证
         http.formLogin(formLogin ->
@@ -89,12 +90,12 @@ public class SecurityConfig {
                         .usernameParameter("username") // 用户名字段的参数名
                         .passwordParameter("password") // 密码字段的参数名
                         .loginProcessingUrl("/login") // 登录表单提交处理的URL
-//                        .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
-//                        .failureHandler(new LoginFailureHandler())
+                        .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
+                        .failureHandler(new LoginFailureHandler())
         );
 
         // 配置自定义登录过滤器
-        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
         // 配置验证码拦截器
         http.addFilterBefore(new CodeFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -154,18 +155,19 @@ public class SecurityConfig {
 //        return new InMemoryUserDetailsManager(user1,user2);
 //    }
 
-    @Autowired
-    AuthenticationConfiguration authenticationConfiguration;
-
-    @Bean
-    public LoginFilter loginFilter() throws Exception {
-        LoginFilter loginFilter = new LoginFilter();
-        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
-        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
-
-        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
-        return loginFilter;
-    }
+//    @Autowired
+//    AuthenticationConfiguration authenticationConfiguration;
+//
+////     配置自定义登录过滤器
+//    @Bean
+//    public LoginFilter loginFilter() throws Exception {
+//        LoginFilter loginFilter = new LoginFilter();
+//        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
+//        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
+//
+//        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+//        return loginFilter;
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
