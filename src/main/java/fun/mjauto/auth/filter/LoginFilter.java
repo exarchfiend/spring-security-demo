@@ -1,23 +1,16 @@
 package fun.mjauto.auth.filter;
 
-import cn.hutool.json.JSONUtil;
-import fun.mjauto.auth.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
-import lombok.val;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.stereotype.Component;
-
-import java.io.BufferedReader;
 
 /**
  * @author MJ
@@ -27,19 +20,18 @@ import java.io.BufferedReader;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
-    public void setAuthenticationFailureHandler(AuthenticationFailureHandler failureHandler) {
-        super.setAuthenticationFailureHandler(failureHandler);
-    }
-
-    @Override
-    public void setAuthenticationSuccessHandler(AuthenticationSuccessHandler successHandler) {
-        super.setAuthenticationSuccessHandler(successHandler);
-    }
-
-    @Override
     public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         super.setAuthenticationManager(authenticationManager);
     }
+
+
+    // 没用authenticationConfiguration不是spring管理的那个 这是一个新实例
+//    private final AuthenticationConfiguration authenticationConfiguration;
+//
+//    public LoginFilter(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+//        this.authenticationConfiguration = authenticationConfiguration;
+//        super.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+//    }
 
     @SneakyThrows
     @Override
