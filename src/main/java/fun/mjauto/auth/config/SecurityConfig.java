@@ -1,40 +1,19 @@
 package fun.mjauto.auth.config;
 
 import fun.mjauto.auth.exception.LoginFailureHandler;
-import fun.mjauto.auth.exception.LoginSuccessHandler;
 import fun.mjauto.auth.filter.CodeFilter;
 import fun.mjauto.auth.filter.LoginFilter;
-import fun.mjauto.auth.mapper.AuthMapper;
-import fun.mjauto.auth.mapper.UserMapper;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import javax.sql.DataSource;
-import java.io.IOException;
 
 /**
  * @author MJ
@@ -46,13 +25,13 @@ import java.io.IOException;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        // 配置请求权限：permitAll()拥有所有权限
+        // 配置请求安全权限：permitAll()拥有所有权限
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
-                        // 角色相关
+                        // 系统角色相关
                         //.requestMatchers("/admin/api").hasRole("admin") // 角色admin可以访问
                         //.requestMatchers("/user/api").hasAnyRole("admin","user") // 角色admin和user可以访问
-                        // 权限相关
+                        // 系统权限相关
                         .requestMatchers("/admin/api").hasAnyAuthority("admin:api") // 权限admin可以访问
                         .requestMatchers("/user/api").hasAnyAuthority("admin:api","user:api") // 权限admin和user可以访问
                         // 匹配相关相关
@@ -61,7 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/aaa/**").hasAnyAuthority("admin:api") // 0-任意数量的目录
 
                         .requestMatchers("/auth/code").permitAll() // 获取验证码的URL不需要认证
-                        .requestMatchers("/favicon.ico").permitAll() // 浏览器默认发送的请求
+//                        .requestMatchers("/favicon.ico").permitAll() // 浏览器默认发送的请求
                         .requestMatchers("/login").permitAll() // 登录表单提交处理的URL不需要认证
                         .anyRequest().authenticated() // 其它所有请求都需要认证，不可以匿名访问
         );
@@ -91,11 +70,12 @@ public class SecurityConfig {
                         .passwordParameter("password") // 密码字段的参数名
                         .loginProcessingUrl("/login") // 登录表单提交处理的URL
                         .defaultSuccessUrl("/auth/index") // 登录成功后的默认URL
-                        .failureHandler(new LoginFailureHandler())
+                        .failureHandler(new LoginFailureHandler()) // 登录失败处理器
         );
 
         // 配置自定义登录过滤器
 //        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterAt(new LoginFilter(authenticationConfiguration), UsernamePasswordAuthenticationFilter.class); // 没用
         // 配置验证码拦截器
         http.addFilterBefore(new CodeFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -155,19 +135,19 @@ public class SecurityConfig {
 //        return new InMemoryUserDetailsManager(user1,user2);
 //    }
 
-//    @Autowired
-//    AuthenticationConfiguration authenticationConfiguration;
-//
-////     配置自定义登录过滤器
-//    @Bean
-//    public LoginFilter loginFilter() throws Exception {
-//        LoginFilter loginFilter = new LoginFilter();
+    @Autowired
+    AuthenticationConfiguration authenticationConfiguration;
+
+//     配置自定义登录过滤器
+    @Bean
+    public LoginFilter loginFilter() throws Exception {
+        LoginFilter loginFilter = new LoginFilter();
 //        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
 //        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
-//
-//        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
-//        return loginFilter;
-//    }
+
+        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+        return loginFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
