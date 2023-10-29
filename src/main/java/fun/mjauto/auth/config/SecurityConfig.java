@@ -14,6 +14,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -115,11 +117,18 @@ public class SecurityConfig {
 //                        .invalidSessionStrategy(new InvalidSessionStrategy() {
 //                            @Override
 //                            public void onInvalidSessionDetected(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-//                                response.setContentType("text/html;charset-UTF-8");
+//                                response.setContentType("text/html;charset=UTF-8");
 //                                response.getWriter().write("会话失效");
 //                            }
 //                        }) // 会话失效策略
 //        );
+
+        http.sessionManagement(sessionManagement->
+                sessionManagement
+                        .invalidSessionUrl("/auth/login")
+                        .maximumSessions(1)
+                        .sessionRegistry(sessionRegistry())
+        );
 
         return http.build();
     }
@@ -186,5 +195,11 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder(){
         // 明文加密
         return NoOpPasswordEncoder.getInstance();
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry(){
+        // 获取已登录用户
+        return new SessionRegistryImpl();
     }
 }
