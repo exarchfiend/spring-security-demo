@@ -129,7 +129,7 @@ public class SecurityConfig {
         // 会话失效策略
         http.sessionManagement(sessionManagement->
                 sessionManagement
-                        .invalidSessionUrl("/auth/login")
+                        .invalidSessionUrl("/sys/login")
                         .maximumSessions(1)
                         .sessionRegistry(sessionRegistry())
         );
