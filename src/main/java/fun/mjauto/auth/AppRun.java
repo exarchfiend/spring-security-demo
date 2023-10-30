@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author MJ
- * @description
+ * @description 启动类
  * @date 2023/10/24
  */
 @SpringBootApplication

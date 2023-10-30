@@ -5,6 +5,30 @@
     <title>首页</title>
 </head>
 <body>
+<a th:href="@{/admin/api}">管理员</a>
+<br>
+<a th:href="@{/user/api}">用户</a>
+<br>
+<a th:href="@{/app/api}">app</a>
+<br>
+<a th:href="@{/admin/a/a}">?</a>
+<br>
+<a th:href="@{/admin/aa/aa}">*</a>
+<br>
+<a th:href="@{/admin/aaa/a/b/c}">***</a>
+<br>
+已登录用户：
+<table>
+    <tr>
+        <td>用户名</td><td>操作</td>
+    </tr>
+    <tr th:each="user:${users}">
+        <td th:text="${user.username}">用户名</td>
+        <td>
+            <a th:href="@{/auth/kickout(username=${user.username})}">下线</a>
+        </td>
+    </tr>
+</table>
 <form th:action="@{/logout}" method="post">
     退出是一个POST请求：<input type="submit" value="退出">
 </form>

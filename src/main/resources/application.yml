@@ -1,5 +1,15 @@
 spring:
-  security:
-    user:
-      name: admin
-      password: 123456
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/security
+    username: root
+    password: root
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+server:
+  servlet:
+    session:
+      timeout: 1m # 单位是分钟
