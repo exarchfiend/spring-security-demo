@@ -1,13 +1,10 @@
 package fun.mjauto.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import fun.mjauto.auth.entity.Auth;
 import fun.mjauto.auth.entity.User;
 import fun.mjauto.auth.mapper.AuthMapper;
 import fun.mjauto.auth.mapper.UserMapper;
-import fun.mjauto.auth.service.UserService;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,15 +13,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author MJ
- * @description
+ * @description 实现UserDetailsService 重写loadUserByUsername方法 实现数据库登录认证
  * @date 2023/10/25
  */
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserDetailsService {
 
     private final UserMapper userMapper;
     private final AuthMapper authMapper;

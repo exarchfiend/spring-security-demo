@@ -2,12 +2,9 @@ package fun.mjauto.auth.config;
 
 import fun.mjauto.auth.exception.LoginFailureHandler;
 import fun.mjauto.auth.filter.CodeFilter;
+import fun.mjauto.auth.filter.LoggerFilter;
 import fun.mjauto.auth.filter.LoginFilter;
 import fun.mjauto.auth.service.impl.TokenServiceImpl;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -20,21 +17,24 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.session.InvalidSessionStrategy;
-
-import java.io.IOException;
+import org.springframework.security.web.session.DisableEncodeUrlFilter;
 
 /**
  * @author MJ
- * @description
+ * @description Security配置类
  * @date 2023/10/25
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    TokenServiceImpl tokenServiceImpl;
+    private final TokenServiceImpl tokenServiceImpl;
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    public SecurityConfig(TokenServiceImpl tokenServiceImpl, AuthenticationConfiguration authenticationConfiguration) {
+        this.tokenServiceImpl = tokenServiceImpl;
+        this.authenticationConfiguration = authenticationConfiguration;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -48,9 +48,9 @@ public class SecurityConfig {
                         .requestMatchers("/admin/api").hasAnyAuthority("admin:api") // 权限admin可以访问
                         .requestMatchers("/user/api").hasAnyAuthority("admin:api","user:api") // 权限admin和user可以访问
                         // 匹配相关相关
-                        .requestMatchers("/admin/a/?").hasAnyAuthority("admin:api") // 任意单个字符
-                        .requestMatchers("/admin/aa/*").hasAnyAuthority("admin:api") // 0-任意数量的字符
-                        .requestMatchers("/admin/aaa/**").hasAnyAuthority("admin:api") // 0-任意数量的目录
+                        .requestMatchers("/auth/a/?").hasAnyAuthority("admin:api") // 任意单个字符
+                        .requestMatchers("/auth/aa/*").hasAnyAuthority("admin:api") // 0-任意数量的字符
+                        .requestMatchers("/auth/aaa/**").hasAnyAuthority("admin:api") // 0-任意数量的目录
 
                         .requestMatchers("/auth/code").permitAll() // 获取验证码的URL不需要认证
 //                        .requestMatchers("/favicon.ico").permitAll() // 浏览器默认发送的请求
@@ -78,7 +78,7 @@ public class SecurityConfig {
         // 配置基于表单的登录认证
         http.formLogin(formLogin ->
                 formLogin
-                        .loginPage("/auth/login").permitAll() // 自定义登录页面
+                        .loginPage("/sys/login").permitAll() // 自定义登录页面
                         .usernameParameter("username") // 用户名字段的参数名
                         .passwordParameter("password") // 密码字段的参数名
                         .loginProcessingUrl("/login") // 登录表单提交处理的URL
@@ -88,16 +88,19 @@ public class SecurityConfig {
 
         // 配置自定义登录过滤器
 //        http.addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
-//        http.addFilterAt(new LoginFilter(authenticationConfiguration), UsernamePasswordAuthenticationFilter.class); // 没用
-        // 配置验证码拦截器
+
+        // 配置自定义验证码拦截器
         http.addFilterBefore(new CodeFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        // 配置自定义第一个拦截器
+        http.addFilterBefore(new LoggerFilter(), DisableEncodeUrlFilter.class);
 
         // 配置退出
         http.logout(logout->
                 logout
                         .invalidateHttpSession(true) // 让Session失效
                         .deleteCookies("rememberMe") // 清除cookies
-                        .logoutSuccessUrl("/auth/login") // 成功跳转url(可以配置自定义退出提示界面)
+                        .logoutSuccessUrl("/sys/login") // 成功跳转url(可以配置自定义退出提示界面)
         );
 
         // 关闭跨域漏洞防御
@@ -123,6 +126,7 @@ public class SecurityConfig {
 //                        }) // 会话失效策略
 //        );
 
+        // 会话失效策略
         http.sessionManagement(sessionManagement->
                 sessionManagement
                         .invalidSessionUrl("/auth/login")
@@ -133,9 +137,30 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    private final DataSource dataSource;
+    @Bean
+    public LoginFilter loginFilter() throws Exception {
+        LoginFilter loginFilter = new LoginFilter();
+//        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
+//        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
+        // 设置身份验证管理器（Authentication Manager）
+        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+        return loginFilter;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        // 明文加密
+        return NoOpPasswordEncoder.getInstance();
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry(){
+        // 获取已登录用户
+        return new SessionRegistryImpl();
+    }
+
+    //    private final DataSource dataSource;
 //
-//    @Autowired
 //    public SecurityConfig(DataSource dataSource) {
 //        this.dataSource = dataSource;
 //    }
@@ -176,30 +201,4 @@ public class SecurityConfig {
 //        // 总结 角色和权限其实是一样的 角色会被加上前缀：ROLE_
 //        return new InMemoryUserDetailsManager(user1,user2);
 //    }
-
-    @Autowired
-    AuthenticationConfiguration authenticationConfiguration;
-
-//     配置自定义登录过滤器
-    @Bean
-    public LoginFilter loginFilter() throws Exception {
-        LoginFilter loginFilter = new LoginFilter();
-//        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
-//        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
-
-        loginFilter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
-        return loginFilter;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        // 明文加密
-        return NoOpPasswordEncoder.getInstance();
-    }
-
-    @Bean
-    public SessionRegistry sessionRegistry(){
-        // 获取已登录用户
-        return new SessionRegistryImpl();
-    }
 }

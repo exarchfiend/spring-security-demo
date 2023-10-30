@@ -10,7 +10,7 @@ import java.util.Properties;
 
 /**
  * @author MJ
- * @description
+ * @description 生成验证码工具Kaptcha配置类
  * @date 22/10/2023
  */
 @Configuration

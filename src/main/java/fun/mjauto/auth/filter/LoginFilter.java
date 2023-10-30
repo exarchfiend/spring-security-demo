@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * @author MJ
- * @description
+ * @description 登陆过滤器 用于登录验证
  * @date 2023/10/25
  */
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -24,19 +24,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         super.setAuthenticationManager(authenticationManager);
     }
 
-
-    // 没用authenticationConfiguration不是spring管理的那个 这是一个新实例
-//    private final AuthenticationConfiguration authenticationConfiguration;
-//
-//    public LoginFilter(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-//        this.authenticationConfiguration = authenticationConfiguration;
-//        super.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
-//    }
-
     @SneakyThrows
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         logger.info("登陆过滤器...");
+        // 登录请求必须是POST方法
         if (!request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         }
@@ -46,6 +38,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         username = username != null ? username.trim() : "";
         String password = super.obtainPassword(request);
         password = password != null ? password : "";
+
+        // 创建和配置身份验证请求
         UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
         this.setDetails(request, authRequest);
 

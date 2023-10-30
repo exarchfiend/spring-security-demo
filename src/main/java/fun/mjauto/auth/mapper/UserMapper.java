@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * @author MJ
- * @description
+ * @description 操作用户登录表
  * @date 2023/10/25
  */
 @Mapper

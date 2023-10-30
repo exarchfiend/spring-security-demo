@@ -8,7 +8,7 @@ import lombok.Data;
 
 /**
  * @author MJ
- * @description
+ * @description 用户权限
  * @date 2023/10/25
  */
 @Data

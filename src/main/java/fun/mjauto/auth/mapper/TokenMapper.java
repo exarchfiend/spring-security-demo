@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * @author MJ
- * @description
+ * @description 操作Token表 用于登录持久化
  * @date 2023/10/27
  */
 @Mapper

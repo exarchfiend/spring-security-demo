@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import fun.mjauto.auth.entity.Token;
 import fun.mjauto.auth.mapper.TokenMapper;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.authentication.rememberme.PersistentRememberMeToken;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -14,7 +13,7 @@ import java.util.Date;
 
 /**
  * @author MJ
- * @description
+ * @description 实现PersistentTokenRepository 重写Token持久化相关业务逻辑
  * @date 2023/10/27
  */
 @Service
@@ -34,7 +33,6 @@ public class TokenServiceImpl implements PersistentTokenRepository {
         myToken.setUsername(token.getUsername());
         myToken.setToken(token.getTokenValue());
         myToken.setLastUsed(token.getDate());
-
         tokenMapper.insert(myToken);
     }
 
@@ -43,9 +41,7 @@ public class TokenServiceImpl implements PersistentTokenRepository {
         UpdateWrapper<Token> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("token", tokenValue);
         updateWrapper.set("last_used", lastUsed);
-
         updateWrapper.eq("series", series);
-
         tokenMapper.update(null, updateWrapper);
     }
 
@@ -66,7 +62,6 @@ public class TokenServiceImpl implements PersistentTokenRepository {
     public void removeUserTokens(String username) {
         UpdateWrapper<Token> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("username", username);
-
         tokenMapper.delete(updateWrapper);
     }
 }
