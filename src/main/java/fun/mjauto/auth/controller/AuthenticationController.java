@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/auth")
-public class AuthController {
+public class AuthenticationController {
     @GetMapping("/code")
     public String getCode(){
+        System.out.println("获取验证码");
         return "获取验证码";
     }
 }
